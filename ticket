@@ -13,6 +13,26 @@ else
     _grep() { grep "$@"; }
 fi
 
+# Portable sha256 (Linux: sha256sum, macOS: shasum -a 256)
+if command -v sha256sum &>/dev/null; then
+    _sha256() { sha256sum; }
+else
+    _sha256() { shasum -a 256; }
+fi
+
+# Portable ISO date (GNU date supports -Iseconds, BSD date does not)
+_iso_date() {
+    date -u +%Y-%m-%dT%H:%M:%SZ
+}
+
+# Portable sed -i (BSD requires -i '', GNU uses -i)
+_sed_i() {
+    local file="$1"
+    shift
+    local tmp="${file}.tmp.$$"
+    sed "$@" "$file" > "$tmp" && mv "$tmp" "$file"
+}
+
 # Generate ticket ID from directory name + timestamp hash
 generate_id() {
     local dir_name
@@ -25,9 +45,9 @@ generate_id() {
     # Fallback to first 3 chars if no segments
     [[ -z "$prefix" ]] && prefix="${dir_name:0:3}"
 
-    # 4-char hash from nanosecond timestamp
+    # 4-char hash from timestamp + PID for entropy
     local hash
-    hash=$(date +%s%N | sha256sum | head -c 4)
+    hash=$(echo "$$$(date +%s)" | _sha256 | head -c 4)
 
     echo "${prefix}-${hash}"
 }
@@ -79,10 +99,10 @@ update_yaml_field() {
     local value="$3"
 
     if _grep -q "^${field}:" "$file"; then
-        sed -i "s/^${field}:.*/${field}: ${value}/" "$file"
+        _sed_i "$file" "s/^${field}:.*/${field}: ${value}/"
     else
         # Insert before closing ---
-        sed -i "/^---$/,/^---$/ { /^---$/ { x; /^$/! { x; b }; x; s/^---$/${field}: ${value}\n---/ } }" "$file"
+        _sed_i "$file" "/^---$/,/^---$/ { /^---$/ { x; /^$/! { x; b }; x; s/^---$/${field}: ${value}\n---/ } }"
     fi
 }
 
@@ -115,7 +135,7 @@ cmd_new() {
     id=$(generate_id)
     local file="$TICKETS_DIR/${id}.md"
     local now
-    now=$(date -Iseconds)
+    now=$(_iso_date)
 
     {
         echo "---"
@@ -224,7 +244,11 @@ cmd_dep_tree() {
 
     awk -v root_pattern="$root_id" -v full_mode="$full_mode" '
     BEGIN { FS=": "; in_front=0 }
-    BEGINFILE { id=""; status=""; title=""; deps="" }
+    FNR==1 {
+        if (prev_file) store()
+        id=""; status=""; title=""; deps=""; in_front=0
+        prev_file=FILENAME
+    }
     /^---$/ { in_front = !in_front; next }
     in_front && /^id:/ { id = $2 }
     in_front && /^status:/ { status = $2 }
@@ -233,7 +257,7 @@ cmd_dep_tree() {
         gsub(/[\[\] ]/, "", deps)
     }
     !in_front && /^# / && title == "" { title = substr($0, 3) }
-    ENDFILE {
+    function store() {
         if (id != "") {
             statuses[id] = status
             titles[id] = title
@@ -247,6 +271,7 @@ cmd_dep_tree() {
     }
 
     END {
+        if (prev_file) store()
         # Resolve partial ID
         root = ""
         for (id in statuses) {
@@ -456,7 +481,11 @@ cmd_ls() {
 
     awk -v status_filter="$status_filter" '
     BEGIN { FS=": "; in_front=0 }
-    BEGINFILE { id=""; status=""; title=""; deps="" }
+    FNR==1 {
+        if (prev_file) emit()
+        id=""; status=""; title=""; deps=""; in_front=0
+        prev_file=FILENAME
+    }
     /^---$/ { in_front = !in_front; next }
     in_front && /^id:/ { id = $2 }
     in_front && /^status:/ { status = $2 }
@@ -465,7 +494,8 @@ cmd_ls() {
         gsub(/[\[\] ]/, "", deps)
     }
     !in_front && /^# / && title == "" { title = substr($0, 3) }
-    ENDFILE {
+    END { if (prev_file) emit() }
+    function emit() {
         if (id != "" && (status_filter == "" || status == status_filter)) {
             deps_display = (deps != "") ? "[" deps "]" : "[]"
             gsub(/,/, ", ", deps_display)
@@ -481,7 +511,11 @@ cmd_ready() {
 
     awk '
     BEGIN { FS=": "; in_front=0 }
-    BEGINFILE { id=""; status=""; title=""; deps=""; priority="" }
+    FNR==1 {
+        if (prev_file) store()
+        id=""; status=""; title=""; deps=""; priority=""; in_front=0
+        prev_file=FILENAME
+    }
     /^---$/ { in_front = !in_front; next }
     in_front && /^id:/ { id = $2 }
     in_front && /^status:/ { status = $2 }
@@ -491,7 +525,7 @@ cmd_ready() {
         gsub(/[\[\] ]/, "", deps)
     }
     !in_front && /^# / && title == "" { title = substr($0, 3) }
-    ENDFILE {
+    function store() {
         if (id != "") {
             statuses[id] = status
             titles[id] = title
@@ -500,6 +534,7 @@ cmd_ready() {
         }
     }
     END {
+        if (prev_file) store()
         # Find ready tickets: active with all deps closed
         for (id in statuses) {
             status = statuses[id]
@@ -552,19 +587,27 @@ cmd_closed() {
     done
 
     # List files by mtime (most recent first), filter closed, limit output
-    ls -t "$TICKETS_DIR"/*.md 2>/dev/null | head -n 100 | xargs -r awk '
+    local files
+    files=$(ls -t "$TICKETS_DIR"/*.md 2>/dev/null | head -n 100)
+    [[ -z "$files" ]] && return 0
+    echo "$files" | xargs awk '
     BEGIN { FS=": "; in_front=0 }
-    BEGINFILE { id=""; status=""; title="" }
+    FNR==1 {
+        if (prev_file) emit()
+        id=""; status=""; title=""; in_front=0
+        prev_file=FILENAME
+    }
     /^---$/ { in_front = !in_front; next }
     in_front && /^id:/ { id = $2 }
     in_front && /^status:/ { status = $2 }
     !in_front && /^# / && title == "" { title = substr($0, 3) }
-    ENDFILE {
+    function emit() {
         if (id != "" && (status == "closed" || status == "done")) {
             output[++count] = sprintf("%-8s [%s] - %s", id, status, title)
         }
     }
     END {
+        if (prev_file) emit()
         for (i = 1; i <= count; i++) print output[i]
     }
     ' | head -n "$limit"
@@ -575,7 +618,11 @@ cmd_blocked() {
 
     awk '
     BEGIN { FS=": "; in_front=0 }
-    BEGINFILE { id=""; status=""; title=""; deps=""; priority="" }
+    FNR==1 {
+        if (prev_file) store()
+        id=""; status=""; title=""; deps=""; priority=""; in_front=0
+        prev_file=FILENAME
+    }
     /^---$/ { in_front = !in_front; next }
     in_front && /^id:/ { id = $2 }
     in_front && /^status:/ { status = $2 }
@@ -585,7 +632,7 @@ cmd_blocked() {
         gsub(/[\[\] ]/, "", deps)
     }
     !in_front && /^# / && title == "" { title = substr($0, 3) }
-    ENDFILE {
+    function store() {
         if (id != "") {
             statuses[id] = status
             titles[id] = title
@@ -594,6 +641,7 @@ cmd_blocked() {
         }
     }
     END {
+        if (prev_file) store()
         # Find blocked tickets: active with at least one dep not closed
         for (id in statuses) {
             status = statuses[id]
@@ -704,7 +752,11 @@ cmd_query() {
     local json_output
     json_output=$(awk '
     BEGIN { FS=": "; in_front=0 }
-    BEGINFILE { delete fields; field_count=0 }
+    FNR==1 {
+        if (prev_file) emit()
+        field_count=0; in_front=0
+        prev_file=FILENAME
+    }
     /^---$/ { in_front = !in_front; next }
     in_front && /^[a-zA-Z]/ {
         key = $1
@@ -714,7 +766,7 @@ cmd_query() {
         field_keys[field_count] = key
         field_vals[field_count] = val
     }
-    ENDFILE {
+    function emit() {
         if (field_count > 0) {
             printf "{"
             for (i = 1; i <= field_count; i++) {
@@ -739,6 +791,7 @@ cmd_query() {
             printf "}\n"
         }
     }
+    END { if (prev_file) emit() }
     ' "$TICKETS_DIR"/*.md 2>/dev/null)
 
     if [[ -n "$filter" ]]; then
