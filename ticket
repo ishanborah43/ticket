@@ -106,7 +106,7 @@ update_yaml_field() {
     fi
 }
 
-cmd_new() {
+cmd_create() {
     ensure_dir
 
     local title="" description="" design="" acceptance=""
@@ -862,7 +862,7 @@ $cmd - minimal ticket system with dependency tracking
 Usage: $cmd <command> [args]
 
 Commands:
-  new [title] [options]    Create ticket, prints ID
+  create [title] [options] Create ticket, prints ID
     -d, --description      Description text
     --design               Design notes
     --acceptance           Acceptance criteria
@@ -887,13 +887,13 @@ Commands:
   migrate-beads            Import tickets from .beads/issues.jsonl
 
 Tickets stored as markdown files in .tickets/
-Supports partial ID matching (e.g., '$cmd show abc' matches 'abc-1234')
+Supports partial ID matching (e.g., '$cmd show 5c4' matches 'nw-5c46')
 EOF
 }
 
 # Main dispatch
 case "${1:-help}" in
-    new)    shift; cmd_new "$@" ;;
+    create) shift; cmd_create "$@" ;;
     start)  shift; cmd_start "$@" ;;
     close)  shift; cmd_close "$@" ;;
     reopen) shift; cmd_reopen "$@" ;;
