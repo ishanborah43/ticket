@@ -19,14 +19,22 @@ Dependencies: bash, sed, awk, find. Optional: ripgrep (faster grep), jq (for que
 
 ## Releases & Packaging
 
-Releases are triggered by pushing a version tag:
+Before tagging a release:
+1. Ensure CHANGELOG.md has a section for the new version with release date
+2. Update "Unreleased" to the version number and today's date
+3. Commit the changelog update as part of the release
+
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+# Example release flow
+# 1. Update CHANGELOG.md: change "## [0.3.0] - Unreleased" to "## [0.3.0] - 2026-01-15"
+# 2. Commit and tag
+git commit -am "release: v0.3.0"
+git tag v0.3.0
+git push && git push origin v0.3.0
 ```
 
 The GitHub Actions workflow (`.github/workflows/release.yml`) automatically:
-1. Creates a GitHub release with generated notes
+1. Extracts the changelog section for this version as the release body
 2. Updates the Homebrew formula in `wedow/homebrew-tools` tap
 3. Updates the AUR package (builds `.SRCINFO` via Docker)
 
